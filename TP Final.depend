@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1593276956 source:c:\users\jerem\documents\utn\programacion - laboratorio\tp final\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<strings.h>
+
