@@ -54,9 +54,14 @@ void muestraClientes();
 
 //BAJA DE CLIENTES
 void bajaCliente();
+int buscarClienteDNI();
 stCliente buscaClienteDNI(char archivo[], int dni);
 int buscaPosicion(int id);
-void modifRegistroBaja(stCliente c);
+
+//MODIFICAR CLIENTES
+void menuModifCliente(int dni);
+void textoMenuModifClientes();
+void modifRegistro(stCliente c);
 
 
 //COLORES
@@ -116,10 +121,10 @@ void menuClientes(){
                 bajaCliente(); // ACA IRIA LA BAJA DEL CLIENTE
             break;
             case 'c':
-                muestraClientes(); // ACA IRIA LA MODIFICACION DEL CLIENTE
+                modifCliente(); // ACA IRIA LA MODIFICACION DEL CLIENTE
             break;
             case 'd':
-                //cargaDeDatos(); // ACA SE MOSTRARIAN SOLO LOS CLIENTES ACTIVOS
+                muestraClientes(); // ACA SE MOSTRARIAN SOLO LOS CLIENTES ACTIVOS
             break;
             case 'e':
                 //cargaDeDatos(); // ACA SE MOSTRARIAN SOLO LOS CLIENTES INACTIVOS
@@ -474,31 +479,43 @@ void muestraClientes(){
 void bajaCliente(){
     stCliente c;
     char opcion;
+    int dni = buscarClienteDNI();
+
+    printf("Estas seguro que deseas dar de baja este cliente? s/n ");
+    fflush(stdin);
+    opcion = getch();
+
+    if(opcion == 's'){
+        c = buscaClienteDNI(ARCH_CLIENTES, dni);
+        c.baja = 1;
+        modifRegistro(c);
+        verde("\nHas dado de baja al cliente sastifactoriamente.\n");
+        }else{
+            rojo("\nNo se ha dado de baja el cliente!\n");
+        }
+}
+
+/*********************************************************//**
+*
+* \brief Funcion que busca un cliente por DNI y lo muestra
+* \return dni
+*
+*************************************************************/
+int buscarClienteDNI(){
     int dni;
 
     do{
-        printf("Introduzca el DNI del cliente a dar de baja: ");
+        printf("Introduzca el DNI del cliente: ");
         scanf("%d", &dni);
 
         if(!validaDNI(dni)){
             printf("\033[0;31m\nNo hay ningun cliente registrado con ese DNI! Ingrese uno valido\n\033[0m");
         }else{
             muestraUnCliente(buscaClienteDNI(ARCH_CLIENTES, dni));
-
-            printf("Estas seguro que deseas dar de baja este cliente? s/n ");
-            fflush(stdin);
-            opcion = getch();
-
-            if(opcion == 's'){
-                modifRegistroBaja(buscaClienteDNI(ARCH_CLIENTES, dni));
-                verde("\nHas dado de baja al cliente sastifactoriamente.\n");
-            }else{
-                rojo("\nNo se ha dado de baja el cliente!\n");
-            }
         }
-
     }while(!validaDNI(dni));
 
+    return dni;
 }
 
 /*********************************************************//**
@@ -552,28 +569,125 @@ int buscaPosicion(int id){
     return pos;
 }
 
+void modifCliente(){
+    char opcion;
+    int dni = buscarClienteDNI();
+
+    amarillo("Estas seguro que deseas modificar este cliente? s/n ");
+    fflush(stdin);
+    opcion = getch();
+
+    if(opcion == 's'){
+        printf("\t\n\nQue deseas editar del cliente?: ");
+
+        menuModifCliente(dni);
+
+        verde("\nHas modificado este cliente sastifactoriamente.\n");
+        }else{
+            rojo("\nNo se ha modificado el cliente!\n");
+        }
+}
+
+void menuModifCliente(int dni){
+    char nombre[30];
+    char apellido[30];
+    char email[30];
+    char domicilio[45];
+    int movil;
+    char opcion;
+
+    stCliente c = buscaClienteDNI(ARCH_CLIENTES, dni);
+
+    do{
+        textoMenuModifClientes();
+        opcion = getch();
+
+        switch(opcion){
+            case 'a':
+                printf("\nIngrese su nuevo nombre: ");
+                fflush(stdin);
+                gets(nombre);
+
+                strcpy(c.nombre, nombre);
+                modifRegistro(c);
+            break;
+            case 'b':
+                printf("\nIngrese su nuevo apellido: ");
+                fflush(stdin);
+                gets(apellido);
+
+                strcpy(c.apellido, apellido);
+                modifRegistro(c); // CAMBIO DE APELLIDO
+            break;
+            case 'c':
+                do{
+                    printf("\nIngrese su nuevo email: ");
+                    fflush(stdin);
+                    gets(email);
+                    if(validaEmail(email) == 0 || validaEmail2(email) == 1){
+                        printf("\033[1;31m");
+                        printf("\nEl email \"%s\", ya se ha registrado, o es incorrecto! Ingrese un email valido.", email);
+                        printf("\033[0m");
+                    }
+                }while(validaEmail(email) == 0 || validaEmail2(email) == 1);
+
+                strcpy(c.email, email);
+
+                modifRegistro(c);
+            break;
+            case 'd':
+                printf("\nIngrese el nuevo domicilio: ");
+                fflush(stdin);
+                gets(domicilio);
+
+                strcpy(c.domicilio, domicilio);
+
+                modifRegistro(c); // CAMBIO DE DOMICILIO
+            break;
+            case 'e':
+                printf("\nIngrese el nuevo movil: ");
+                scanf("%d", &movil);
+
+                c.movil = movil;
+
+                modifRegistro(c); // CAMBIO DE MOVIL
+            break;
+        }
+
+        system("pause");
+    }while(opcion != ESC);
+}
+
+void textoMenuModifClientes(){
+    printf("\n\n");
+    printf("a) Modificar nombre.\n");
+    printf("b) Modificar apellido.\n");
+    printf("c) Modificar email.\n");
+    printf("d) Modificar domicilio.\n");
+    printf("d) Modificar movil.\n");
+    printf("\n\n");
+    printf("Presiona ESC para salir...");
+}
+
 /*********************************************************//**
 *
-* \brief Da de baja al cliente pasado por parametro
+* \brief Modifica el cliente pasado por parametro
 * \param stCliente c
 * \return void
 *
 *************************************************************/
-void modifRegistroBaja(stCliente c){
+void modifRegistro(stCliente c){
     int pos = buscaPosicion(c.id);
 
     FILE *pArchClientes = fopen(ARCH_CLIENTES, "r+b");
 
     if(pArchClientes){
         fseek(pArchClientes, sizeof(stCliente)*pos, SEEK_SET);
-        c.baja = 1;
         fwrite(&c, sizeof(stCliente), 1, pArchClientes);
 
         fclose(pArchClientes);
     }
 }
-
-
 
 
 /*********************************************************//**
@@ -596,4 +710,15 @@ void rojo(char texto[]){
 *************************************************************/
 void verde(char texto[]){
     printf("\033[0;32m%s\033[0m", texto);
+}
+
+/*********************************************************//**
+*
+* \brief Transforma el texto en amarillo
+* \param char texto[]
+* \return void
+*
+*************************************************************/
+void amarillo(char texto[]){
+    printf("\033[0;30m%s\033[0m", texto);
 }
