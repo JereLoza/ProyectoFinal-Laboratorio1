@@ -26,14 +26,19 @@ typedef struct {
 } stConsumos;
 
 #define ESC 27
-#define ARCH_CLIENTES "archClientesAlta.dat"
+
+#define ARCH_CLIENTES "archClientes.dat"
+#define ARCH_CLIENTESALTA "archClientesAlta.dat"
 #define ARCH_CLIENTESBAJA "archClientesBaja.dat"
 
+//MENUS
 void menuPrincipal();
 void menuClientes();
 void textoMenuClientes();
 void menuConsumos();
 void textoMenuConsumos();
+
+//CARGA DE CLIENTES + VALIDACIONES
 stCliente cargarUnCliente();
 int ultimoID();
 int validaDNI(int dni);
@@ -42,13 +47,19 @@ int validaEmail2(char email[]);
 int validaMovil(int movil);
 void cargarCliente();
 void guardaClienteArch(stCliente c);
+
+//MUESTRA DE CLIENTES
 void muestraUnCliente(stCliente c);
 void muestraClientes();
+
+//BAJA DE CLIENTES
 void bajaCliente();
 stCliente buscaClienteDNI(char archivo[], int dni);
 int buscaPosicion(int id);
 void modifRegistroBaja(stCliente c);
 
+
+//COLORES
 void rojo(char texto[]);
 void verde(char texto[]);
 
@@ -174,6 +185,13 @@ void textoMenuConsumos(){
     printf("Presiona ESC para salir...");
 }
 
+
+/*********************************************************//**
+*
+* \brief Funcion de carga de un Cliente
+* \return stCliente
+*
+*************************************************************/
 stCliente cargarUnCliente(){
     stCliente c;
 
@@ -237,6 +255,12 @@ stCliente cargarUnCliente(){
     return c;
 }
 
+/*********************************************************************//**
+*
+* \brief Obtiene el id siguiente al ultimo
+* \return el proximo id libre
+*
+**************************************************************************/
 int ultimoID(){
     stCliente c;
     int id = -1;
@@ -256,6 +280,14 @@ int ultimoID(){
     return id;
 }
 
+
+/*********************************************************************//**
+*
+* \brief Valida si hay algun cliente con el mismo numero de cliente
+* \param int nroCliente
+* \return int 0 si no existe - 1 si existe
+*
+**************************************************************************/
 int validaNroCliente(int nroCliente){
     stCliente c;
     int flag = 0;
@@ -274,6 +306,14 @@ int validaNroCliente(int nroCliente){
     return flag;
 }
 
+
+/*********************************************************************//**
+*
+* \brief Valida si hay algun cliente con el mismo dni
+* \param int dni
+* \return int 0 si no existe - 1 si existe
+*
+**************************************************************************/
 int validaDNI(int dni){
     stCliente c;
     int flag = 0;
@@ -292,6 +332,13 @@ int validaDNI(int dni){
     return flag;
 }
 
+/*********************************************************************//**
+*
+* \brief Valida si existe una @ en un string
+* \param char email[]
+* \return int 0 si no existe - 1 si existe
+*
+**************************************************************************/
 int validaEmail(char email[]){
     int v = strlen(email);
     int i = 0;
@@ -308,6 +355,13 @@ int validaEmail(char email[]){
     return flag;
 }
 
+/*********************************************************************//**
+*
+* \brief Valida si hay algun cliente con el mismo email
+* \param char email[]
+* \return int 0 si no existe - 1 si existe
+*
+**************************************************************************/
 int validaEmail2(char email[]){
     stCliente c;
     int flag = 0;
@@ -326,6 +380,13 @@ int validaEmail2(char email[]){
     return flag;
 }
 
+/*********************************************************************//**
+*
+* \brief Valida si hay algun cliente con el mismo movil
+* \param int movil
+* \return int 0 si no existe - 1 si existe
+*
+**************************************************************************/
 int validaMovil(int movil){
     stCliente c;
     int flag = 0;
@@ -359,6 +420,13 @@ void cargarCliente(){
     }
 }
 
+/*********************************************************************//**
+*
+* \brief Guarda un dato de tipo stCliente en un archivo
+* \param stCliente c
+* \return void
+*
+**************************************************************************/
 void guardaClienteArch(stCliente c){
     FILE *pArchClientes = fopen(ARCH_CLIENTES, "ab");
 
@@ -368,6 +436,13 @@ void guardaClienteArch(stCliente c){
     }
 }
 
+/*********************************************************//**
+*
+* \brief Funcion que muestra un Cliente
+* \param arreglo stCliente
+* \return void
+*
+*************************************************************/
 void muestraUnCliente(stCliente c){
     printf("\n -----------------------------------------------------");
     printf("\n  ID:                      %i", c.id);
@@ -426,14 +501,14 @@ void bajaCliente(){
 
 }
 
-void rojo(char texto[]){
-    printf("\033[0;31m%s\033[0m", texto);
-}
-
-void verde(char texto[]){
-    printf("\033[0;32m%s\033[0m", texto);
-}
-
+/*********************************************************//**
+*
+* \brief Funcion que muestra un Cliente
+* \param char archivo[]
+* \param int dni
+* \return stCliente
+*
+*************************************************************/
 stCliente buscaClienteDNI(char archivo[], int dni){
     stCliente c;
     int flag = 0;
@@ -452,6 +527,13 @@ stCliente buscaClienteDNI(char archivo[], int dni){
     return c;
 }
 
+/*********************************************************//**
+*
+* \brief Busca la posicion de la id introducida
+* \param int id
+* \return la posicion de la id pasada por parametro
+*
+*************************************************************/
 int buscaPosicion(int id){
     stCliente c;
     int pos = -1;
@@ -470,6 +552,13 @@ int buscaPosicion(int id){
     return pos;
 }
 
+/*********************************************************//**
+*
+* \brief Da de baja al cliente pasado por parametro
+* \param stCliente c
+* \return void
+*
+*************************************************************/
 void modifRegistroBaja(stCliente c){
     int pos = buscaPosicion(c.id);
 
@@ -482,4 +571,29 @@ void modifRegistroBaja(stCliente c){
 
         fclose(pArchClientes);
     }
+}
+
+
+
+
+/*********************************************************//**
+*
+* \brief Transforma el texto en rojo
+* \param char texto[]
+* \return void
+*
+*************************************************************/
+void rojo(char texto[]){
+    printf("\033[0;31m%s\033[0m", texto);
+}
+
+/*********************************************************//**
+*
+* \brief Transforma el texto en verde
+* \param char texto[]
+* \return void
+*
+*************************************************************/
+void verde(char texto[]){
+    printf("\033[0;32m%s\033[0m", texto);
 }
