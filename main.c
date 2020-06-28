@@ -62,11 +62,17 @@ int buscaPosicion(int id);
 void menuModifCliente(int dni);
 void textoMenuModifClientes();
 void modifRegistro(stCliente c);
+void cambiarNombre(stCliente c);
+void cambiarApellido(stCliente c);
+void cambiarEmail(stCliente c);
+void cambiarDomicilio(stCliente c);
+void cambiarMovil(stCliente c);
 
 
 //COLORES
 void rojo(char texto[]);
 void verde(char texto[]);
+void amarillo(char texto[]);
 
 
 int main()
@@ -588,74 +594,144 @@ void modifCliente(){
         }
 }
 
+/*********************************************************//**
+*
+* \brief Menu que modifica clientes
+* \param stCliente c
+* \return void
+*
+*************************************************************/
 void menuModifCliente(int dni){
-    char nombre[30];
-    char apellido[30];
-    char email[30];
-    char domicilio[45];
-    int movil;
     char opcion;
 
     stCliente c = buscaClienteDNI(ARCH_CLIENTES, dni);
 
     do{
+        system("cls");
+        muestraUnCliente(c);
         textoMenuModifClientes();
         opcion = getch();
 
         switch(opcion){
             case 'a':
-                printf("\nIngrese su nuevo nombre: ");
-                fflush(stdin);
-                gets(nombre);
-
-                strcpy(c.nombre, nombre);
-                modifRegistro(c);
+                cambiarNombre(c);
             break;
             case 'b':
-                printf("\nIngrese su nuevo apellido: ");
-                fflush(stdin);
-                gets(apellido);
-
-                strcpy(c.apellido, apellido);
-                modifRegistro(c); // CAMBIO DE APELLIDO
+                cambiarApellido(c);
             break;
             case 'c':
-                do{
-                    printf("\nIngrese su nuevo email: ");
-                    fflush(stdin);
-                    gets(email);
-                    if(validaEmail(email) == 0 || validaEmail2(email) == 1){
-                        printf("\033[1;31m");
-                        printf("\nEl email \"%s\", ya se ha registrado, o es incorrecto! Ingrese un email valido.", email);
-                        printf("\033[0m");
-                    }
-                }while(validaEmail(email) == 0 || validaEmail2(email) == 1);
-
-                strcpy(c.email, email);
-
-                modifRegistro(c);
+                cambiarEmail(c);
             break;
             case 'd':
-                printf("\nIngrese el nuevo domicilio: ");
-                fflush(stdin);
-                gets(domicilio);
-
-                strcpy(c.domicilio, domicilio);
-
-                modifRegistro(c); // CAMBIO DE DOMICILIO
+                cambiarDomicilio(c);
             break;
             case 'e':
-                printf("\nIngrese el nuevo movil: ");
-                scanf("%d", &movil);
-
-                c.movil = movil;
-
-                modifRegistro(c); // CAMBIO DE MOVIL
+                cambiarMovil(c);
             break;
         }
 
         system("pause");
     }while(opcion != ESC);
+}
+
+/*********************************************************//**
+*
+* \brief Cambia el nombre de un cliente
+* \param stCliente c
+* \return void
+*
+*************************************************************/
+void cambiarNombre(stCliente c){
+    char nombre[30];
+
+    printf("\nIngrese su nuevo nombre: ");
+    fflush(stdin);
+    gets(nombre);
+
+    strcpy(c.nombre, nombre);
+    modifRegistro(c);
+}
+
+/*********************************************************//**
+*
+* \brief Cambia el apellido de un cliente
+* \param stCliente c
+* \return void
+*
+*************************************************************/
+void cambiarApellido(stCliente c){
+    char apellido[30];
+
+    printf("\nIngrese su nuevo apellido: ");
+    fflush(stdin);
+    gets(apellido);
+
+    strcpy(c.apellido, apellido);
+    modifRegistro(c);
+}
+
+/*********************************************************//**
+*
+* \brief Cambia el email de un cliente
+* \param stCliente c
+* \return void
+*
+*************************************************************/
+void cambiarEmail(stCliente c){
+    char email[30];
+
+    do{
+        printf("\nIngrese su nuevo email: ");
+        fflush(stdin);
+        gets(email);
+
+        if(validaEmail(email) == 0 || validaEmail2(email) == 1){
+            printf("\033[1;31m");
+            printf("\nEl email \"%s\", ya se ha registrado, o es incorrecto! Ingrese un email valido.", email);
+            printf("\033[0m");
+        }
+    }while(validaEmail(email) == 0 || validaEmail2(email) == 1);
+
+    strcpy(c.email, email);
+
+    modifRegistro(c);
+}
+
+/*********************************************************//**
+*
+* \brief Cambia el domicilio de un cliente
+* \param stCliente c
+* \return void
+*
+*************************************************************/
+void cambiarDomicilio(stCliente c){
+    char domicilio[45];
+
+    printf("\nIngrese el nuevo domicilio: ");
+    fflush(stdin);
+    gets(domicilio);
+
+    strcpy(c.domicilio, domicilio);
+
+    modifRegistro(c);
+}
+
+/*********************************************************//**
+*
+* \brief Cambia el movil de un cliente
+* \param stCliente c
+* \return void
+*
+*************************************************************/
+void cambiarMovil(stCliente c){
+    int movil;
+
+    printf("\nIngrese el nuevo movil: ");
+    scanf("%d", &movil);
+
+    c.movil = movil;
+
+    modifRegistro(c);
 }
 
 void textoMenuModifClientes(){
@@ -666,7 +742,7 @@ void textoMenuModifClientes(){
     printf("d) Modificar domicilio.\n");
     printf("d) Modificar movil.\n");
     printf("\n\n");
-    printf("Presiona ESC para salir...");
+    printf("Presiona ESC para salir...\n");
 }
 
 /*********************************************************//**
@@ -698,7 +774,7 @@ void modifRegistro(stCliente c){
 *
 *************************************************************/
 void rojo(char texto[]){
-    printf("\033[0;31m%s\033[0m", texto);
+    printf("\033[1;31m%s\033[0m", texto);
 }
 
 /*********************************************************//**
@@ -720,5 +796,5 @@ void verde(char texto[]){
 *
 *************************************************************/
 void amarillo(char texto[]){
-    printf("\033[0;30m%s\033[0m", texto);
+    printf("\033[0;33m%s\033[0m", texto);
 }
