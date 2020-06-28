@@ -26,7 +26,8 @@ typedef struct {
 } stConsumos;
 
 #define ESC 27
-#define ARCH_CLIENTES "archClientes.dat"
+#define ARCH_CLIENTES "archClientesAlta.dat"
+#define ARCH_CLIENTESBAJA "archClientesBaja.dat"
 
 void menuPrincipal();
 void menuClientes();
@@ -43,6 +44,13 @@ void cargarCliente();
 void guardaClienteArch(stCliente c);
 void muestraUnCliente(stCliente c);
 void muestraClientes();
+void bajaCliente();
+stCliente buscaClienteDNI(char archivo[], int dni);
+int buscaPosicion(int id);
+void modifRegistroBaja(stCliente c);
+
+void rojo(char texto[]);
+void verde(char texto[]);
 
 
 int main()
@@ -94,10 +102,10 @@ void menuClientes(){
                 cargarCliente(); // ACA IRIA EL ALTA DEL CLIENTE
             break;
             case 'b':
-                muestraClientes(); // ACA IRIA LA BAJA DEL CLIENTE
+                bajaCliente(); // ACA IRIA LA BAJA DEL CLIENTE
             break;
             case 'c':
-                //cargaDeDatos(); // ACA IRIA LA MODIFICACION DEL CLIENTE
+                muestraClientes(); // ACA IRIA LA MODIFICACION DEL CLIENTE
             break;
             case 'd':
                 //cargaDeDatos(); // ACA SE MOSTRARIAN SOLO LOS CLIENTES ACTIVOS
@@ -175,7 +183,9 @@ stCliente cargarUnCliente(){
         printf("Ingrese el numero de cliente: ");
         scanf("%d", &c.nroCliente);
         if(validaNroCliente(c.nroCliente)){
+            printf("\033[1;31m");
             printf("\nEl numero de cliente \"%d\" ya se ha registrado! Ingresa un numero de cliente valido.\n", c.nroCliente);
+            printf("\033[0m");
         }
     }while((c.nroCliente < 0 || c.nroCliente > 9999999) || (validaNroCliente(c.nroCliente) == 1));
 
@@ -191,7 +201,9 @@ stCliente cargarUnCliente(){
         printf("\nIngrese el DNI del cliente: ");
         scanf("%d", &c.dni);
         if(validaDNI(c.dni)){
+            printf("\033[1;31m");
             printf("\nEl DNI \"%d\" ya se ha registrado! Ingresa un DNI valido.", c.dni);
+            printf("\033[0m");
         }
     }while(validaDNI(c.dni));
 
@@ -200,7 +212,9 @@ stCliente cargarUnCliente(){
         fflush(stdin);
         gets(c.email);
         if(validaEmail(c.email) == 0 || validaEmail2(c.email) == 1){
+            printf("\033[1;31m");
             printf("\nEl email \"%s\", ya se ha registrado, o es incorrecto! Ingrese un email valido.", c.email);
+            printf("\033[0m");
         }
     }while(validaEmail(c.email) == 0 || validaEmail2(c.email) == 1);
 
@@ -212,7 +226,9 @@ stCliente cargarUnCliente(){
         printf("\nIngrese el numero de celular del cliente: ");
         scanf("%d", &c.movil);
         if(validaMovil(c.movil)){
+            printf("\033[1;31m");
             printf("\nEl numero \"%d\" ya se ha registrado! Ingresa un numero valido.", c.movil);
+            printf("\033[0m");
         }
     }while(validaMovil(c.movil));
 
@@ -379,27 +395,46 @@ void muestraClientes(){
         fclose(pArchClientes);
     }
 }
-/*
+
 void bajaCliente(){
-    int pos;
+    stCliente c;
+    char opcion;
+    int dni;
 
     do{
-        system("cls");
-        printf("Introduzca la ID del cliente a dar de baja: ");
-        scanf("%d", &pos);
+        printf("Introduzca el DNI del cliente a dar de baja: ");
+        scanf("%d", &dni);
 
-        if(pos > ultimoID()){
-            printf("\nNo hay ningun cliente registrado con esa ID! Ingrese una valida");
+        if(!validaDNI(dni)){
+            printf("\033[0;31m\nNo hay ningun cliente registrado con ese DNI! Ingrese uno valido\n\033[0m");
         }else{
-            buscaClienteID(ARCH_CLIENTES, pos);
+            muestraUnCliente(buscaClienteDNI(ARCH_CLIENTES, dni));
 
+            printf("Estas seguro que deseas dar de baja este cliente? s/n ");
+            fflush(stdin);
+            opcion = getch();
+
+            if(opcion == 's'){
+                modifRegistroBaja(buscaClienteDNI(ARCH_CLIENTES, dni));
+                verde("\nHas dado de baja al cliente sastifactoriamente.\n");
+            }else{
+                rojo("\nNo se ha dado de baja el cliente!\n");
+            }
         }
 
-    }while(pos > ultimoID());
+    }while(!validaDNI(dni));
 
 }
 
-void buscaClienteID(char archivo[], int pos){
+void rojo(char texto[]){
+    printf("\033[0;31m%s\033[0m", texto);
+}
+
+void verde(char texto[]){
+    printf("\033[0;32m%s\033[0m", texto);
+}
+
+stCliente buscaClienteDNI(char archivo[], int dni){
     stCliente c;
     int flag = 0;
 
@@ -407,24 +442,44 @@ void buscaClienteID(char archivo[], int pos){
 
     if(pArchClientes){
         while(flag == 0 && fread(&c, sizeof(stCliente), 1, pArchClientes) > 0){
-            if(pos == c.id){
+            if(c.dni == dni){
                 flag = 1;
             }
         }
         fclose(pArchClientes);
     }
 
-    muestraUnCliente(c);
+    return c;
 }
 
-void confirmaBaja(){
-    char opcion;
+int buscaPosicion(int id){
+    stCliente c;
+    int pos = -1;
 
-    printf("Esta seguro que desea dar de baja al cliente? s/n");
-    opcion = getch();
+    FILE *pArchClientes = fopen(ARCH_CLIENTES,"rb");
 
-    if(opcion == 's'){
+    if(pArchClientes){
+        while(pos == -1 && fread(&c, sizeof(stCliente), 1, pArchClientes) > 0){
+            if(c.id == id){
+                pos = ftell(pArchClientes)/sizeof(stCliente)-1;
+            }
+        }
+        fclose(pArchClientes);
+    }
 
+    return pos;
+}
+
+void modifRegistroBaja(stCliente c){
+    int pos = buscaPosicion(c.id);
+
+    FILE *pArchClientes = fopen(ARCH_CLIENTES, "r+b");
+
+    if(pArchClientes){
+        fseek(pArchClientes, sizeof(stCliente)*pos, SEEK_SET);
+        c.baja = 1;
+        fwrite(&c, sizeof(stCliente), 1, pArchClientes);
+
+        fclose(pArchClientes);
     }
 }
-*/
