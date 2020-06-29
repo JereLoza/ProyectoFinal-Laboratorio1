@@ -26,10 +26,12 @@ typedef struct {
 } stConsumos;
 
 #define ESC 27
+#define MAX_CLIENTES 9999
 
 #define ARCH_CLIENTES "archClientes.dat"
 #define ARCH_CLIENTESALTA "archClientesAlta.dat"
 #define ARCH_CLIENTESBAJA "archClientesBaja.dat"
+
 
 //MENUS
 void menuPrincipal();
@@ -41,7 +43,7 @@ void textoMenuConsumos();
 //CARGA DE CLIENTES + VALIDACIONES
 stCliente cargarUnCliente();
 int ultimoID();
-int validaDNI(int dni);
+int validaDNI(char archivo[], int dni);
 int validaEmail(char email[]);
 int validaEmail2(char email[]);
 int validaMovil(int movil);
@@ -54,7 +56,7 @@ void muestraClientes();
 
 //BAJA DE CLIENTES
 void bajaCliente();
-int buscarClienteDNI();
+int buscarClienteDNI(char archivo[]);
 stCliente buscaClienteDNI(char archivo[], int dni);
 int buscaPosicion(int id);
 
@@ -68,6 +70,20 @@ void cambiarEmail(stCliente c);
 void cambiarDomicilio(stCliente c);
 void cambiarMovil(stCliente c);
 
+
+//ORDENAR CLIENTES ALTA
+void clientesBajaAlta();
+int pasarArchivoArreglo(char archivo[], stCliente array[], int dim);
+void menuMostrarCliAct();
+void textoMenuMostrarCliAct();
+void mostrarClientes(stCliente array[], int v);
+void intercambiaClientes(stCliente *a, stCliente *b);
+void ordenarCliDNI(stCliente array[], int v);
+void ordenarCliApellido(stCliente array[], int v);
+
+//ORDENAR CLIENTES BAJA
+void mostrarCliBajaEmail();
+void ordenarCliBajaEmail(stCliente array[], int v);
 
 //COLORES
 void rojo(char texto[]);
@@ -130,10 +146,10 @@ void menuClientes(){
                 modifCliente(); // ACA IRIA LA MODIFICACION DEL CLIENTE
             break;
             case 'd':
-                muestraClientes(); // ACA SE MOSTRARIAN SOLO LOS CLIENTES ACTIVOS
+                menuMostrarCliAct(); // ACA SE MOSTRARIAN SOLO LOS CLIENTES ACTIVOS
             break;
             case 'e':
-                //cargaDeDatos(); // ACA SE MOSTRARIAN SOLO LOS CLIENTES INACTIVOS
+                mostrarCliBajaEmail(); // ACA SE MOSTRARIAN SOLO LOS CLIENTES INACTIVOS
             break;
         }
 
@@ -149,8 +165,8 @@ void textoMenuClientes(){
     printf("a) Cargar nuevo cliente.\n");
     printf("b) Dar de baja a un cliente.\n");
     printf("c) Modificar un cliente.\n");
-    printf("d) Listar clientes (activos).\n");
-    printf("e) Listar clientes (inactivos).\n");
+    printf("d) Listar clientes activos.\n");
+    printf("e) Listar clientes inactivos ordenados por email.\n");
     printf("\n\n");
     printf("Presiona ESC para salir...");
 }
@@ -229,12 +245,12 @@ stCliente cargarUnCliente(){
     do{
         printf("\nIngrese el DNI del cliente: ");
         scanf("%d", &c.dni);
-        if(validaDNI(c.dni)){
+        if(validaDNI(ARCH_CLIENTES, c.dni)){
             printf("\033[1;31m");
             printf("\nEl DNI \"%d\" ya se ha registrado! Ingresa un DNI valido.", c.dni);
             printf("\033[0m");
         }
-    }while(validaDNI(c.dni));
+    }while(validaDNI(ARCH_CLIENTES, c.dni));
 
     do{
         printf("\nIngrese el email del cliente: ");
@@ -325,11 +341,11 @@ int validaNroCliente(int nroCliente){
 * \return int 0 si no existe - 1 si existe
 *
 **************************************************************************/
-int validaDNI(int dni){
+int validaDNI(char archivo[], int dni){
     stCliente c;
     int flag = 0;
 
-    FILE *pArchClientes = fopen(ARCH_CLIENTES, "rb");
+    FILE *pArchClientes = fopen(archivo, "rb");
 
     if(pArchClientes){
         while(flag == 0 && fread(&c, sizeof(stCliente), 1, pArchClientes) > 0){
@@ -468,10 +484,10 @@ void muestraUnCliente(stCliente c){
     printf("\n -----------------------------------------------------\n");
 }
 
-void muestraClientes(){
+void muestraClientes(char archivo[]){
     stCliente c;
 
-    FILE *pArchClientes = fopen(ARCH_CLIENTES, "rb");
+    FILE *pArchClientes = fopen(archivo, "rb");
 
     if(pArchClientes){
         while(fread(&c, sizeof(stCliente), 1, pArchClientes) > 0){
@@ -485,7 +501,7 @@ void muestraClientes(){
 void bajaCliente(){
     stCliente c;
     char opcion;
-    int dni = buscarClienteDNI();
+    int dni = buscarClienteDNI(ARCH_CLIENTES);
 
     printf("Estas seguro que deseas dar de baja este cliente? s/n ");
     fflush(stdin);
@@ -504,22 +520,23 @@ void bajaCliente(){
 /*********************************************************//**
 *
 * \brief Funcion que busca un cliente por DNI y lo muestra
+* \param char archivo[]
 * \return dni
 *
 *************************************************************/
-int buscarClienteDNI(){
+int buscarClienteDNI(char archivo[]){
     int dni;
 
     do{
         printf("Introduzca el DNI del cliente: ");
         scanf("%d", &dni);
 
-        if(!validaDNI(dni)){
+        if(!validaDNI(archivo, dni)){
             printf("\033[0;31m\nNo hay ningun cliente registrado con ese DNI! Ingrese uno valido\n\033[0m");
         }else{
-            muestraUnCliente(buscaClienteDNI(ARCH_CLIENTES, dni));
+            muestraUnCliente(buscaClienteDNI(archivo, dni));
         }
-    }while(!validaDNI(dni));
+    }while(!validaDNI(archivo, dni));
 
     return dni;
 }
@@ -577,7 +594,7 @@ int buscaPosicion(int id){
 
 void modifCliente(){
     char opcion;
-    int dni = buscarClienteDNI();
+    int dni = buscarClienteDNI(ARCH_CLIENTES);
 
     amarillo("Estas seguro que deseas modificar este cliente? s/n ");
     fflush(stdin);
@@ -632,6 +649,17 @@ void menuModifCliente(int dni){
 
         system("pause");
     }while(opcion != ESC);
+}
+
+void textoMenuModifClientes(){
+    printf("\n\n");
+    printf("a) Modificar nombre.\n");
+    printf("b) Modificar apellido.\n");
+    printf("c) Modificar email.\n");
+    printf("d) Modificar domicilio.\n");
+    printf("d) Modificar movil.\n");
+    printf("\n\n");
+    printf("Presiona ESC para salir...\n");
 }
 
 /*********************************************************//**
@@ -734,17 +762,6 @@ void cambiarMovil(stCliente c){
     modifRegistro(c);
 }
 
-void textoMenuModifClientes(){
-    printf("\n\n");
-    printf("a) Modificar nombre.\n");
-    printf("b) Modificar apellido.\n");
-    printf("c) Modificar email.\n");
-    printf("d) Modificar domicilio.\n");
-    printf("d) Modificar movil.\n");
-    printf("\n\n");
-    printf("Presiona ESC para salir...\n");
-}
-
 /*********************************************************//**
 *
 * \brief Modifica el cliente pasado por parametro
@@ -764,6 +781,164 @@ void modifRegistro(stCliente c){
         fclose(pArchClientes);
     }
 }
+
+void menuMostrarCliAct(){
+    char opcion;
+    stCliente clientes[MAX_CLIENTES];
+    clientesBajaAlta();
+    int vClientes = pasarArchivoArreglo(ARCH_CLIENTESALTA, clientes, MAX_CLIENTES);
+    int dni;
+
+    do{
+        system("cls");
+        textoMenuMostrarCliAct();
+        opcion = getch();
+
+        switch(opcion){
+            case 'a':
+                ordenarCliDNI(clientes, vClientes);
+                mostrarClientes(clientes, vClientes);
+            break;
+            case 'b':
+                ordenarCliApellido(clientes, vClientes);
+                mostrarClientes(clientes, vClientes);
+            break;
+            case 'c':
+                dni = buscarClienteDNI(ARCH_CLIENTESALTA);
+            break;
+        }
+
+        system("pause");
+    }while(opcion != ESC);
+}
+
+void textoMenuMostrarCliAct(){
+    printf("\t Mostrar clientes");
+    printf("\n\n");
+    printf("a) Mostrar clientes activos ordenados por DNI.\n");
+    printf("b) Mostrar clientes activos ordenados por Apellido.\n");
+    printf("c) Buscar un cliente activo por DNI y mostrarlo.\n");
+    printf("\n\n");
+    printf("Presiona ESC para salir...\n");
+}
+
+void clientesBajaAlta(){
+    stCliente c;
+
+    FILE *pArchClientes = fopen(ARCH_CLIENTES, "rb");
+    FILE *pArchClientesAlta = fopen(ARCH_CLIENTESALTA, "wb");
+    FILE *pArchClientesBaja = fopen(ARCH_CLIENTESBAJA, "wb");
+
+    if(pArchClientes && pArchClientesAlta && pArchClientesBaja){
+        while(fread(&c, sizeof(stCliente), 1, pArchClientes) > 0){
+            if(c.baja){
+                fwrite(&c, sizeof(stCliente), 1, pArchClientesBaja);
+            }
+            else{
+                fwrite(&c, sizeof(stCliente), 1, pArchClientesAlta);
+            }
+        }
+
+        fclose(pArchClientes);
+        fclose(pArchClientesAlta);
+        fclose(pArchClientesBaja);
+    }
+}
+
+/*********************************************************//**
+*
+* \brief Pasa un archivo a un arreglo
+* \param char archivo[]
+* \param stCliente array[]
+* \param int dim
+* \return Validos del arreglo
+*
+*************************************************************/
+int pasarArchivoArreglo(char archivo[], stCliente array[], int dim){
+    stCliente c;
+    int i = 0;
+
+    FILE *pArchCliente = fopen(archivo, "rb");
+
+    if(pArchCliente){
+        while(i < dim && fread(&c, sizeof(stCliente), 1, pArchCliente) > 0){
+            array[i] = c;
+            i++;
+        }
+
+        fclose(pArchCliente);
+    }
+
+    return i;
+}
+
+/*********************************************************//**
+*
+* \brief Muestra clientes de un arreglo
+* \param stCliente array[]
+* \param int v
+* \return void
+*
+*************************************************************/
+void mostrarClientes(stCliente array[], int v){
+    printf("\t\tLista de Clientes:\n\n");
+
+    for(int i=0;i<v;i++){
+        muestraUnCliente(array[i]);
+    }
+}
+
+void intercambiaClientes(stCliente *a, stCliente *b){
+    stCliente aux;
+
+    aux = *a;
+    *a = *b;
+    *b = aux;
+}
+
+void ordenarCliDNI(stCliente array[], int v){
+     for(int i=0;i<v;i++){
+        for(int j=i+1;j<v;j++){
+            if(array[i].dni > array[j].dni){
+                intercambiaClientes(&array[i], &array[j]);
+            }
+        }
+    }
+}
+
+void ordenarCliApellido(stCliente array[], int v){
+     for(int i=0;i<v;i++){
+        for(int j=i+1;j<v;j++){
+            if(strcmpi(array[i].apellido, array[j].apellido) > 0){
+                intercambiaClientes(&array[i], &array[j]);
+            }
+        }
+    }
+}
+
+void mostrarCliBajaEmail(){
+    stCliente clientesBaja[MAX_CLIENTES];
+    clientesBajaAlta();
+    int vClientesBaja = pasarArchivoArreglo(ARCH_CLIENTESBAJA, clientesBaja, MAX_CLIENTES);
+
+    ordenarCliBajaEmail(clientesBaja, vClientesBaja);
+    mostrarClientes(clientesBaja, vClientesBaja);
+
+}
+
+void ordenarCliBajaEmail(stCliente array[], int v){
+    for(int i=0;i<v;i++){
+        for(int j=i+1;j<v;j++){
+            if(strcmpi(array[i].email, array[j].email) > 0){
+                intercambiaClientes(&array[i], &array[j]);
+            }
+        }
+    }
+}
+
+///*  ACA TERMINA LA SECCION DE CLIENTES  *///
+
+
 
 
 /*********************************************************//**
